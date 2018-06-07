@@ -192,6 +192,14 @@ public class ContentServiceImpl implements IContentService {
     }
 
     @Override
+    public void batchAppend(List<ContentVo> contentVos) {
+        contentVos.forEach(e -> {
+                    this.publish(e);
+                }
+        );
+    }
+
+    @Override
     @Transactional
     public String updateArticle(ContentVo contents) {
         if (null == contents) {

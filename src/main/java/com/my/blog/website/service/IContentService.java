@@ -4,6 +4,8 @@ import com.github.pagehelper.PageInfo;
 import com.my.blog.website.modal.Vo.ContentVoExample;
 import com.my.blog.website.modal.Vo.ContentVo;
 
+import java.util.List;
+
 /**
  * Created by Administrator on 2017/3/13 013.
  */
@@ -61,7 +63,7 @@ public interface IContentService {
      * @param limit limit
      * @return ContentVo
      */
-    PageInfo<ContentVo> getArticles(String keyword,Integer page,Integer limit);
+    PageInfo<ContentVo> getArticles(String keyword, Integer page, Integer limit);
 
 
     /**
@@ -89,5 +91,7 @@ public interface IContentService {
      * @param ordinal
      * @param newCatefory
      */
-    void updateCategory(String ordinal,String newCatefory);
+    void updateCategory(String ordinal, String newCatefory);
+
+    void batchAppend(List<ContentVo> contentVos);
 }
