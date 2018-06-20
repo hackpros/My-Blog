@@ -3,6 +3,8 @@ package com.my.blog.website.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.my.blog.website.constant.WebConst;
+import com.my.blog.website.dao.ContentVoMapper;
+import com.my.blog.website.dao.FilmMapper;
 import com.my.blog.website.dao.MetaVoMapper;
 import com.my.blog.website.dto.Types;
 import com.my.blog.website.exception.TipException;
@@ -15,10 +17,7 @@ import com.my.blog.website.utils.DateKit;
 import com.my.blog.website.utils.TaleUtils;
 import com.my.blog.website.utils.Tools;
 import com.vdurmont.emoji.EmojiParser;
-import com.my.blog.website.dao.ContentVoMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +29,7 @@ import java.util.List;
  */
 @Service
 public class ContentServiceImpl implements IContentService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ContentServiceImpl.class);
+    protected final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(this.getClass());
 
     @Resource
     private ContentVoMapper contentDao;
@@ -43,6 +42,9 @@ public class ContentServiceImpl implements IContentService {
 
     @Resource
     private IMetaService metasService;
+
+    @Resource
+    private FilmMapper filmMapper;
 
     @Override
     @Transactional
@@ -195,6 +197,11 @@ public class ContentServiceImpl implements IContentService {
     public void batchAppend(List<ContentVo> contentVos) {
         contentVos.forEach(e -> {
                     this.publish(e);
+                    LOGGER.info("added one movie resources..");
+                    e.getFilm().setCid(e.getCid().longValue());
+                    LOGGER.info(e.getFilm().toString());
+                    filmMapper.insert(e.getFilm());
+                    LOGGER.info("added one film resources..");
                 }
         );
     }

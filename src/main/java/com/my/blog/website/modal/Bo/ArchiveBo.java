@@ -12,6 +12,11 @@ public class ArchiveBo implements Serializable {
 
     private String date;
     private String count;
+    /**
+     * 分类查条件
+     */
+    private String category;
+
     private List<ContentVo> articles;
 
     public String getDate() {
@@ -36,6 +41,14 @@ public class ArchiveBo implements Serializable {
 
     public void setArticles(List<ContentVo> articles) {
         this.articles = articles;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override

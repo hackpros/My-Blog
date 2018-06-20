@@ -1,5 +1,6 @@
 package com.my.blog.website.service;
 
+import com.my.blog.website.constant.ArticleCateEnum;
 import com.my.blog.website.dto.MetaDto;
 import com.my.blog.website.modal.Bo.ArchiveBo;
 import com.my.blog.website.modal.Bo.BackResponseBo;
@@ -62,7 +63,7 @@ public interface ISiteService {
      *
      * @return
      */
-    List<ArchiveBo> getArchives();
+    List<ArchiveBo> getArchives(ArticleCateEnum articleCateEnum);
 
     /**
      * 获取分类/标签列表

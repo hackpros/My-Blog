@@ -33,12 +33,13 @@
             <img th:src="@{/user/img/logo.png}" alt="首页"/>
         </a>
         <div class="navbar-menu">
-            <a th:href="${commons.site_url('/archives')}">热点新闻</a>
-            <a th:href="${commons.site_url('/archives')}">美图</a>
-            <a th:href="${commons.site_url('/archives')}">宅男福利</a>
-            <a th:href="${commons.site_url('/archives')}">归档</a>
-            <a th:href="${commons.site_url('/links')}">友链</a>
-            <a th:href="${commons.site_url('/about')}">关于</a>
+            <a th:href="${commons.site_url('/archives/NEWS')}">热点新闻</a>
+            <a th:href="${commons.site_url('/archives/FILMS')}">影视资讯</a>
+            <a th:href="${commons.site_url('/archives/DEFAULT')}">技术宅男</a>
+            <a th:href="${commons.site_url('/archives/MITO')}">如美花眷</a>
+            <a th:href="${commons.site_url('/archives/ESSAYS')}">似水流年</a>
+            <a th:href="${commons.site_url('/links')}">友情链接</a>
+            <a th:href="${commons.site_url('/about')}">关于博主</a>
         </div>
         <div class="navbar-search" onclick="">
             <span class="icon-search"></span>

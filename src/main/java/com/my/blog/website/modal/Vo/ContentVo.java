@@ -86,6 +86,24 @@ public class ContentVo implements Serializable {
      */
     private String content;
 
+    /**
+     * 海报/缩细图
+     */
+    private String thumbnail;
+
+    /**
+     * 影视信息子表
+     */
+    private transient Film film;
+
+    public Film getFilm() {
+        return film;
+    }
+
+    public void setFilm(Film film) {
+        this.film = film;
+    }
+
     private static final long serialVersionUID = 1L;
 
     public Integer getCid() {
@@ -214,5 +232,13 @@ public class ContentVo implements Serializable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
     }
 }

@@ -274,6 +274,10 @@ public final class Commons {
      * @return
      */
     public static String show_thumb(ContentVo contents) {
+        if (StringUtils.isNotEmpty(contents.getThumbnail())){
+            String poster=contents.getThumbnail().replaceAll("/over_","/poster_");
+            return poster;
+        }
         int cid = contents.getCid();
         int size = cid % 20;
         size = size == 0 ? 1 : size;

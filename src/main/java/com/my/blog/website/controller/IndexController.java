@@ -1,6 +1,7 @@
 package com.my.blog.website.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.my.blog.website.constant.ArticleCateEnum;
 import com.my.blog.website.constant.WebConst;
 import com.my.blog.website.dto.ErrorCode;
 import com.my.blog.website.dto.MetaDto;
@@ -10,11 +11,9 @@ import com.my.blog.website.modal.Bo.CommentBo;
 import com.my.blog.website.modal.Bo.RestResponseBo;
 import com.my.blog.website.modal.Vo.CommentVo;
 import com.my.blog.website.modal.Vo.ContentVo;
+import com.my.blog.website.modal.Vo.FilmQueryHelper;
 import com.my.blog.website.modal.Vo.MetaVo;
-import com.my.blog.website.service.ICommentService;
-import com.my.blog.website.service.IContentService;
-import com.my.blog.website.service.IMetaService;
-import com.my.blog.website.service.ISiteService;
+import com.my.blog.website.service.*;
 import com.my.blog.website.utils.IPKit;
 import com.my.blog.website.utils.PatternKit;
 import com.my.blog.website.utils.TaleUtils;
@@ -41,6 +40,7 @@ import java.util.List;
 public class IndexController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexController.class);
 
+
     @Resource
     private IContentService contentService;
 
@@ -53,6 +53,8 @@ public class IndexController extends BaseController {
     @Resource
     private ISiteService siteService;
 
+    @Resource
+    private IFilmService filmService;
     /**
      * 首页
      *
@@ -96,8 +98,15 @@ public class IndexController extends BaseController {
             return this.render_404();
         }
         request.setAttribute("article", contents);
+        /**如果是影视，附表的对表明也放出出来*/
+        if (ArticleCateEnum.FILMS.name().equalsIgnoreCase(contents.getCategories())){
+            FilmQueryHelper exp= new FilmQueryHelper();
+            exp.createCriteria().andCidEqualTo(contents.getCid().longValue());
+            request.setAttribute("film",  filmService.selectByExample(exp).get(0));
+        }
         request.setAttribute("is_post", true);
         completeArticle(request, contents);
+
         updateArticleHit(contents.getCid(), contents.getHits());
         return this.render("post");
 
@@ -271,9 +280,9 @@ public class IndexController extends BaseController {
      *
      * @return
      */
-    @GetMapping(value = "archives")
-    public String archives(HttpServletRequest request) {
-        List<ArchiveBo> archives = siteService.getArchives();
+    @GetMapping(value = "archives/{articleCate}")
+    public String archives(HttpServletRequest request,@PathVariable ArticleCateEnum articleCate) {
+        List<ArchiveBo> archives = siteService.getArchives(articleCate);
         request.setAttribute("archives", archives);
         return this.render("archives");
     }

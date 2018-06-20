@@ -6,6 +6,9 @@
     <div class="post-header">
         <h1 class="post-title" itemprop="name headline">
             <a th:href="${commons.permalink(article)}" th:text="${article.title}" data-no-instant=""></a>
+            <a href="magnet:?xt=urn:btih:dfcbdc819c58f338ef1aec174eb4734ad9325cb3&amp;dn=7.Days.in.Entebbe.2018.1080p.WEB-DL.DD5.1.H264-FGT&amp;tr=http%3A%2F%2Ftracker.trackerfix.com%3A80%2Fannounce&amp;tr=udp%3A%2F%2F9.rarbg.me%3A2710&amp;tr=udp%3A%2F%2F9.rarbg.to%3A2710">
+                <img src="/user/img/magnet.gif" border="0">
+            </a>
         </h1>
         <div class="post-data">
             <time th:datetime="${commons.fmtdate(article.created)}" itemprop="datePublished" th:text="'发布于 '+ ${commons.fmtdate(article.created)}"></time>
@@ -15,6 +18,13 @@
     </div>
     <div id="post-content" class="post-content" itemprop="articleBody">
         <p class="post-tags" th:utext="${commons.show_tags(article.tags)}"></p>
+
+        <div th:if="${article.categories} ge 'films'">
+            <p>大    小: <span th:text="${film.size}"></span></p>
+            <p>发行年份: <span th:text="${film.year}"></span></p>
+            <img th:if="${article.categories} ge 'films'" th:src="'https://'+${film.poster}" border="0" th:alt="${film.plot}">
+        </div>
+
         <th:block th:utext="${commons.article(article.content)}"/>
         <p class="post-info">
             本站文章除注明转载/出处外，均为本站原创或翻译，转载前请务必署名,转载请标明出处<br/>最后编辑时间为:
