@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>Description: 对于英文资源的影视.通过douban抓取中文照</p>
+ * <p>Description: 对于英文资源的影视.通过douban抓取中文对照
+ *      对于不能获取的数据，就使用google，youdao　翻译
+ * </p>
  * <p>Copyright: Copyright (c) 2018</p>
  * <p>Company: jumore</p>
  *
@@ -35,7 +37,7 @@ import java.util.Map;
 @Component
 public class DouBanMovieSource implements MoviePlate {
 
-    public static final ObjectMapper objectMapper = new ObjectMapper();
+
     static String doubanLoginUrl = "https://www.douban.com/accounts/login";
 
     static String doubanLoginApi = "https://accounts.douban.com/login";
@@ -167,7 +169,7 @@ public class DouBanMovieSource implements MoviePlate {
         String source = doc.select("#lzform input[name=source]").val();
         String redir = doc.select("#lzform input[name=redir]").val();
         String form_email = "fans_2046@126.com";
-        String form_password = "1qaz2wsx";
+        String form_password = "1q2wazsx";
 
         Map<String, String> formData = new HashMap<String, String>();
         formData.put("source", source);
@@ -190,19 +192,6 @@ public class DouBanMovieSource implements MoviePlate {
     }
 
     private ContentVo getDetailResponse(Map<String, String> cookies, DouBanMoviesList e, Film film) throws IOException, InterruptedException {
-        /*Map<String, String> cookies = new HashMap<>();
-        cookies.put("__utma", "30149280.1870359753.1528685618.1528685618.1528685618.1");
-        cookies.put("__utma", "223695111.1847921201.1528686548.1528686548.1528686548.1");
-        cookies.put("__utmc", "30149280");
-        cookies.put("__utmc", "223695111");
-        cookies.put("__utmz", "30149280.1528685618.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)");
-        cookies.put("__utmz", "223695111.1528686548.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)");
-        cookies.put("__yadk_uid", "VesRdyOEJOJLbZ2grf8Y4JHKVYZjQdZH");
-        cookies.put("_pk_id.100001.4cf6", "bea0b59a0b21b191.1528685618.1.1528686548.1528685618.");
-        cookies.put("_vwo_uuid_v2", "D44AE6B72A349DE59A38E2ED2A5A42AE1|0a98bb397b263e953d91ec72e8bbab37");
-        cookies.put("ap", "1");
-        cookies.put("bid", "JnYYupH52Qs");
-        cookies.put("ll", "\"118172\"");*/
         Connection connection = Jsoup.connect(e.getUrl())
                 .userAgent(userAgent)
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")

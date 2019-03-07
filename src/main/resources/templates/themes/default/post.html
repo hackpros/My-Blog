@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:yh="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <div th:replace="themes/default/header::header(${article.title},${article.tags})"></div>
 <body>
 <article class="main-content post-page" itemscope="" itemtype="http://schema.org/Article">
@@ -8,21 +9,27 @@
             <a th:href="${commons.permalink(article)}" th:text="${article.title}" data-no-instant=""></a>
             <a href="magnet:?xt=urn:btih:dfcbdc819c58f338ef1aec174eb4734ad9325cb3&amp;dn=7.Days.in.Entebbe.2018.1080p.WEB-DL.DD5.1.H264-FGT&amp;tr=http%3A%2F%2Ftracker.trackerfix.com%3A80%2Fannounce&amp;tr=udp%3A%2F%2F9.rarbg.me%3A2710&amp;tr=udp%3A%2F%2F9.rarbg.to%3A2710">
                 <img src="/user/img/magnet.gif" border="0">
+                <img th:if="${article.categories} == 'films'" border="0"/>
             </a>
         </h1>
         <div class="post-data">
-            <time th:datetime="${commons.fmtdate(article.created)}" itemprop="datePublished" th:text="'发布于 '+ ${commons.fmtdate(article.created)}"></time>
-            / <th:block th:utext="${commons.show_categories(article.categories)}"/> / <a href="#comments" th:text="${article.commentsNum ?: 0}+' 条评论'"></a> /
-            <th:block th:text="${article.hits}"/>浏览
+            <time th:datetime="${commons.fmtdate(article.created)}" itemprop="datePublished"
+                  th:text="'发布于 '+ ${commons.fmtdate(article.created)}"></time>
+            /
+            <th:block th:utext="${commons.show_categories(article.categories)}"/>
+            / <a href="#comments" th:text="${article.commentsNum ?: 0}+' 条评论'"></a> /
+            <th:block th:text="${article.hits}"/>
+            浏览
         </div>
     </div>
     <div id="post-content" class="post-content" itemprop="articleBody">
         <p class="post-tags" th:utext="${commons.show_tags(article.tags)}"></p>
 
-        <div th:if="${article.categories} ge 'films'">
-            <p>大    小: <span th:text="${film.size}"></span></p>
-            <p>发行年份: <span th:text="${film.year}"></span></p>
-            <img th:if="${article.categories} ge 'films'" th:src="'https://'+${film.poster}" border="0" th:alt="${film.plot}">
+        <div th:if="${article.categories} == 'films'">
+            <p th:if="${article.categories} == 'films'" th:text="'大 小:'+${film.size}"/>
+            <span th:if="${article.categories} == 'films'" th:text="'发行年份:'+${film.year}"/>
+            <img th:if="${article.categories} == 'films'" th:attr="data-src=${film.poster}" border="0">
+            <br/>
         </div>
 
         <th:block th:utext="${commons.article(article.content)}"/>
@@ -34,5 +41,13 @@
 </article>
 <div th:replace="themes/default/comments::comments"></div>
 <div th:replace="themes/default/footer::footer"></div>
+<script>
+    $('#post-content img').each(function() {
+        debugger
+        var imageDataSource = $(this).data('src');
+        var setImageSource = $(this).attr('src', imageDataSource);
+        console.log(imageDataSource);
+    });
+</script>
 </body>
 </html>

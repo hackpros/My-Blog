@@ -28,6 +28,10 @@ public enum ArticleCateEnum {
     /**
      *  随笔
      */
-    ESSAYS
+    ESSAYS,
+    /**
+     *  乱七八糟
+     */
+    MESSY
 
 }

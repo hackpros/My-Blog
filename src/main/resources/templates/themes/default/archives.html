@@ -1,7 +1,10 @@
 <!DOCTYPE html>
+<script>
+</script>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <div th:replace="themes/default/header::header(title='文章归档',keywords=null)"></div>
 <body>
+<div id="overlib"></div>
 <div class="main-content archive-page clearfix">
     <div class="categorys-item">
         <th:block th:each="archive : ${archives}">
@@ -13,10 +16,16 @@
                             <div class="post-list-item-container">
                                 <div class="item-label">
                                     <div class="item-title">
-                                        <a th:href="${commons.permalink(article.cid, article.slug)}" th:text="${article.title}"></a>
+                                        <a th:href="${commons.permalink(article.cid, article.slug)}"
+                                           th:text="${article.title}"
+                                           onmouseover="return overlib('<img src=\'https://dyncdn.me/mimages/326952/over_opt.jpg\' border=0>')"
+                                           onmouseout="return nd();"></a>
+
                                     </div>
                                     <div class="item-meta clearfix">
-                                        <div class="item-meta-date">发布于 <th:block th:text="${commons.fmtdate(article.created)}"/></div>
+                                        <div class="item-meta-date">发布于
+                                            <th:block th:text="${commons.fmtdate(article.created)}"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -197,11 +197,10 @@ public class ContentServiceImpl implements IContentService {
     public void batchAppend(List<ContentVo> contentVos) {
         contentVos.forEach(e -> {
                     this.publish(e);
-                    LOGGER.info("added one movie resources..");
-                    e.getFilm().setCid(e.getCid().longValue());
-                    LOGGER.info(e.getFilm().toString());
-                    filmMapper.insert(e.getFilm());
-                    LOGGER.info("added one film resources..");
+                    if (e.getFilm()!=null){
+                        e.getFilm().setCid(e.getCid().longValue());
+                        filmMapper.insert(e.getFilm());
+                    }
                 }
         );
     }

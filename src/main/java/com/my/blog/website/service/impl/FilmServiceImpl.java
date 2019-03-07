@@ -14,7 +14,7 @@ public class FilmServiceImpl extends BaseServiceImp implements IFilmService {
     final FilmMapper filmMapper;
     public FilmServiceImpl(FilmMapper filmMapper){
         this.filmMapper=filmMapper;
-        this.setBaseMapper(filmMapper);
+        super.setBaseMapper(filmMapper);
     }
 
 

@@ -9,12 +9,12 @@ import com.my.blog.website.modal.Vo.Film;
 import com.my.blog.website.modal.Vo.FilmQueryHelper;
 import com.my.blog.website.modal.constants.FilmHelper;
 import com.my.blog.website.service.IContentService;
-import com.rarchives.ripme.utils.Http;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.jsoup.helper.HttpConnection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -86,7 +86,7 @@ public class RarbgMovieSource implements MoviePlate {
         System.out.println(list);
     }
 
-    //@Scheduled(cron = "0 0/1 * * * ?")
+    //@Scheduled(cron = "0 0/2 * * * ?")
     @Scheduled(cron = " 0 0 0/1 * * ?")
     public void start() throws IOException, InterruptedException {
         log.info("start task....");
@@ -296,7 +296,7 @@ public class RarbgMovieSource implements MoviePlate {
     }
 
 
-    private static void trustAllHttpsCertificates() throws Exception {
+    public static void trustAllHttpsCertificates() throws Exception {
         javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[1];
         javax.net.ssl.TrustManager tm = new Pkix.miTM();
         trustAllCerts[0] = tm;
@@ -311,8 +311,6 @@ public class RarbgMovieSource implements MoviePlate {
         String captchaFileRemoteAsString = "https://rarbg.is/captcha2/" + captcha_id_value + ".png";
         log.info("the captcha file path: " + captchaFileRemoteAsString);
         try {
-
-
             trustAllHttpsCertificates();
             HostnameVerifier hv = new HostnameVerifier() {
                 public boolean verify(String urlHostName, SSLSession session) {
@@ -347,14 +345,24 @@ public class RarbgMovieSource implements MoviePlate {
 
     private void getDescription(String descURLAsString, Map<String, String> cookies, ContentVo vo) throws IOException {
         log.info("5.0 get everyone resource detail page info");
-        Connection.Response resp = Http.url(descURLAsString)
+       /* Connection.Response resp  = HttpConnection.connect(descURLAsString)
+                .userAgent(userAgent)
+                .header("Host", "rarbg.is")
+                .header("Referer", "https://rarbg.is/torrents.php")
+                .cookies(cookies)
+                .timeout(60000).validateTLSCertificates(false)
+                .method(Connection.Method.GET).response();*/
+
+
+        Connection.Response resp = HttpConnection.connect(descURLAsString)
                 .userAgent(userAgent)
                 .header("Host", "rarbg.is")
                 .header("Referer", "https://rarbg.is/torrents.php")
                 .cookies(cookies)
                 .timeout(60000)
+                .validateTLSCertificates(false)
                 .method(Connection.Method.GET)
-                .response();
+                .execute();
         if (resp.statusCode() != HttpStatus.OK.value()) {
             log.error(resp.statusMessage());
             throw new IOException("get everyone resource detail page info error");

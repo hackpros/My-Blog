@@ -42,7 +42,7 @@ public class ContentVo implements Serializable {
     private String type;
 
     /**
-     * 内容状态
+     * 内容状态 draft:草稿  publish:已发布：sensitive:敏感的
      */
     private String status;
 

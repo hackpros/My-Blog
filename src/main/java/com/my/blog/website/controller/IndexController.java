@@ -127,6 +127,12 @@ public class IndexController extends BaseController {
             return this.render_404();
         }
         request.setAttribute("article", contents);
+        /**如果是影视，附表的对表明也放出出来*/
+        if (ArticleCateEnum.FILMS.name().equalsIgnoreCase(contents.getCategories())){
+            FilmQueryHelper exp= new FilmQueryHelper();
+            exp.createCriteria().andCidEqualTo(contents.getCid().longValue());
+            request.setAttribute("film",  filmService.selectByExample(exp).get(0));
+        }
         request.setAttribute("is_post", true);
         completeArticle(request, contents);
         updateArticleHit(contents.getCid(), contents.getHits());
