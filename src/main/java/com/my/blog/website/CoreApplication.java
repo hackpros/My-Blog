@@ -21,14 +21,19 @@ import javax.sql.DataSource;
 @EnableTransactionManagement
 @EnableScheduling
 public class CoreApplication {
+
     @Bean(initMethod = "init", destroyMethod = "close")
     @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource dataSource() {
-        return new DruidDataSource();
+        String password=System.getenv("spring.datasource.password");
+        DruidDataSource dataSource= new DruidDataSource();
+        dataSource.setPassword(password);
+        return dataSource;
     }
 
     @Bean
     public SqlSessionFactory sqlSessionFactoryBean() throws Exception {
+
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(dataSource());

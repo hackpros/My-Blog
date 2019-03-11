@@ -111,8 +111,11 @@ public class RarbgMovieSource implements MoviePlate {
             //String addedTime = e.select("td:eq(2)").text();
             //String size = e.select("td:eq(3)").text();
             String thumbnail = e.select("td:eq(1)").select("a").attr("onmouseover");
-            thumbnail = "https:" + match(thumbnail, "img", "src").get(0);
-
+            if (thumbnail.startsWith("https")){
+                thumbnail = match(thumbnail, "img", "src").get(0);
+            }else{
+                thumbnail = "https:" + match(thumbnail, "img", "src").get(0);
+            }
             this.getDescription(href, connection.request().cookies(), vo);
 
             /**如果数据已抓取，就不处理了*/

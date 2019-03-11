@@ -42,7 +42,7 @@ public class DouBanMovieSource implements MoviePlate {
 
     static String doubanLoginApi = "https://accounts.douban.com/login";
 
-    static String httpsURLAsString = "https://movie.douban.com/j/subject_suggest";
+    static String httpsURLAsString = "https://movie.douban.com/subject_suggest";
     static String userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36";
     protected final Logger log = Logger.getLogger(this.getClass());
     @Resource
