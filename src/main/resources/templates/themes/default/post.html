@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
+<style>
+    post-content img {
+        width: 250px;
+        height: auto;
+    }
+</style>
 <div th:replace="themes/default/header::header(${article.title},${article.tags})"></div>
 <body>
 <article class="main-content post-page" itemscope="" itemtype="http://schema.org/Article">
@@ -28,13 +33,13 @@
         <div th:if="${article.categories} == 'films'">
             <p th:if="${article.categories} == 'films'" th:text="'大 小:'+${film.size}"/>
             <span th:if="${article.categories} == 'films'" th:text="'发行年份:'+${film.year}"/>
-            <img th:if="${article.categories} == 'films'" th:attr="data-src=${film.poster}" border="0">
+            <img th:if="${article.categories} == 'films'" alt="Kursk.2018.1080p.WEB-DL.DD5.1.H264-FGT" th:attr="data-src=${film.poster}" border="0">
             <br/>
         </div>
 
         <th:block th:utext="${commons.article(article.content)}"/>
         <p class="post-info">
-            本站文章除注明转载/出处外，均为本站原创或翻译，转载前请务必署名,转载请标明出处<br/>最后编辑时间为:
+            本站文章除注明转载/出外，均为本站原创或翻译，转载前请务必署名,转载请标明出处<br/>最后编辑时间为:
             <th:block th:text="${commons.fmtdate(article.modified, 'yyyy/MM/dd HH:mm')}"/>
         </p>
     </div>
@@ -43,10 +48,10 @@
 <div th:replace="themes/default/footer::footer"></div>
 <script>
     $('#post-content img').each(function() {
-        debugger
+        //debugger
         var imageDataSource = $(this).data('src');
         var setImageSource = $(this).attr('src', imageDataSource);
-        console.log(imageDataSource);
+        //console.log(imageDataSource);
     });
 </script>
 </body>

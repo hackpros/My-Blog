@@ -51,9 +51,9 @@
             return null;
     }
     function addCommentInputValue() {
-        document.getElementById('author').value = getCommentCookie('tale_remember_author');
-        document.getElementById('mail').value = getCommentCookie('tale_remember_mail');
-        document.getElementById('url').value = getCommentCookie('tale_remember_url');
+        $('#author').val(getCommentCookie('tale_remember_author'));
+        $('#mail').val(getCommentCookie('tale_remember_mail'));
+        $('#url').val(getCommentCookie('tale_remember_url'));
     }
     addCommentInputValue();
     /*]]>*/
