@@ -6,6 +6,7 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -14,6 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 @MapperScan("com.my.blog.website.dao")
@@ -22,13 +24,26 @@ import javax.sql.DataSource;
 @EnableScheduling
 public class CoreApplication {
 
+    @Resource
+    DataSourceProperties dataSourceProperties;
+
     @Bean(initMethod = "init", destroyMethod = "close")
-    @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource dataSource() {
         String password=System.getenv("spring.datasource.password");
         DruidDataSource dataSource= new DruidDataSource();
         dataSource.setPassword(password);
-        return dataSource;
+
+        DruidDataSource druidDataSource = new DruidDataSource();
+        druidDataSource.setUrl(dataSourceProperties.getUrl());
+        druidDataSource.setUsername(dataSourceProperties.getUsername());
+        druidDataSource.setPassword(password);
+        druidDataSource.setDriverClassName(dataSourceProperties.getDriverClassName());
+        // configuration
+        druidDataSource.setInitialSize(20);
+        druidDataSource.setMinIdle(10);
+        druidDataSource.setMaxActive(100);
+        return druidDataSource;
+
     }
 
     @Bean
