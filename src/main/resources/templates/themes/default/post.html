@@ -12,7 +12,7 @@
     <div class="post-header">
         <h1 class="post-title" itemprop="name headline">
             <a th:href="${commons.permalink(article)}" th:text="${article.title}" data-no-instant=""></a>
-            <a href="magnet:?xt=urn:btih:dfcbdc819c58f338ef1aec174eb4734ad9325cb3&amp;dn=7.Days.in.Entebbe.2018.1080p.WEB-DL.DD5.1.H264-FGT&amp;tr=http%3A%2F%2Ftracker.trackerfix.com%3A80%2Fannounce&amp;tr=udp%3A%2F%2F9.rarbg.me%3A2710&amp;tr=udp%3A%2F%2F9.rarbg.to%3A2710">
+            <a th:if="${article.categories} == 'films'" th:href="${film.downPath}">
                 <img src="/user/img/magnet.gif" border="0">
                 <img th:if="${article.categories} == 'films'" border="0"/>
             </a>
