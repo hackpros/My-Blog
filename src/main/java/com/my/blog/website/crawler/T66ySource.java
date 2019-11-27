@@ -23,6 +23,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -62,17 +63,15 @@ public class T66ySource implements MoviePlate {
 
     @Resource
     private IContentService contentService;
-    @Resource
-    private FilmMapper filmMapper;
-
 
     public static void main(String[] args) throws Exception {
         T66ySource t = new T66ySource();
         t.start();
     }
 
-    //@Scheduled(cron = "0 0/1 * * * ?") //每分钟
-    //@Scheduled(cron = " 0 0 0/1 * * ?") //每小时
+
+    @Scheduled(cron = "0 5 23 * * ?", zone = "Asia/Shanghai")
+    //@Scheduled(cron = "0 */1 * * * ?", zone = "Asia/Shanghai")
     public void start() throws IOException, InterruptedException {
         log.info("start task....");
         List<ContentVo> contentVos = new ArrayList<ContentVo>();
@@ -83,7 +82,7 @@ public class T66ySource implements MoviePlate {
         for (Element e : elements) {
             String title = e.select("td:eq(1)").select("a").text();
             /**
-             * 先简间的过滤一下 h内容 ,后面想用es分词技术同时存到es中，便于搜索，学习es技术
+             * 先简单的过滤一下 h内容 ,后面想用es分词技术同时存到es中，便于搜索，学习es技术
              */
             if (title.contains("AV") || title.contains("女优") || title.contains("男优") || title.contains("番号")) {
                 continue;
@@ -142,9 +141,9 @@ public class T66ySource implements MoviePlate {
         CloseableHttpResponse response = null;
         try {
             /**使用socket5代理　shadowsocks-netty　自己维护代理池*/
-            InetSocketAddress socksAddr = new InetSocketAddress("127.0.0.1", 4108);
+            //InetSocketAddress socksAddr = new InetSocketAddress("127.0.0.1", 4108);
             HttpClientContext context = HttpClientContext.create();
-            context.setAttribute("socks.address", socksAddr);
+            //context.setAttribute("socks.address", socksAddr);
             HttpGet request = new HttpGet(url);
             request.setHeader("User-Agent", userAgent);
             response = httpclient.execute(request, context);
