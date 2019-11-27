@@ -91,7 +91,7 @@ public class T66ySource implements MoviePlate {
             //srcUrl="http://www.t66y.com/htm_data/7/1807/3207163.html";
             //srcUrl="http://www.t66y.com/htm_data/7/1807/3207075.html";
             ContentVo vo = new ContentVo();
-            vo.setTitle(title);
+            vo.setTitle(title.split(" ")[0]);
             this.getContents(srcUrl, vo);
             vo.setTitle(title);
             vo.setAuthorId(1);
