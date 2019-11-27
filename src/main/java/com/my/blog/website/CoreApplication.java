@@ -32,7 +32,7 @@ public class CoreApplication {
     public DataSource dataSource() {
         String username = System.getenv("spring.datasource.username");
         String password = System.getenv("spring.datasource.password");
-        String url = System.getenv("spring.datasource.url");
+        String url = System.getenv("CLEARDB_DATABASE_URL");
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setPassword(password);
 
