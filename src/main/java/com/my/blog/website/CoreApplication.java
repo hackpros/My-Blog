@@ -1,6 +1,7 @@
 package com.my.blog.website;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
@@ -29,13 +30,24 @@ public class CoreApplication {
 
     @Bean(initMethod = "init", destroyMethod = "close")
     public DataSource dataSource() {
-        String password=System.getenv("spring.datasource.password");
-        DruidDataSource dataSource= new DruidDataSource();
+        String username = System.getenv("spring.datasource.username");
+        String password = System.getenv("spring.datasource.password");
+        String url = System.getenv("CLEARDB_DATABASE_URL");
+        DruidDataSource dataSource = new DruidDataSource();
         dataSource.setPassword(password);
 
+        if (StringUtils.isEmpty(username)) {
+            username = dataSourceProperties.getUsername();
+        }
+        if (StringUtils.isEmpty(password)) {
+            password = dataSourceProperties.getPassword();
+        }
+        if (StringUtils.isEmpty(url)) {
+            url = dataSourceProperties.getUrl();
+        }
         DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setUrl(dataSourceProperties.getUrl());
-        druidDataSource.setUsername(dataSourceProperties.getUsername());
+        druidDataSource.setUrl(url);
+        druidDataSource.setUsername(username);
         druidDataSource.setPassword(password);
         druidDataSource.setDriverClassName(dataSourceProperties.getDriverClassName());
         // configuration
