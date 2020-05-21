@@ -2,6 +2,8 @@ package com.my.blog.website.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.my.blog.website.component.BloomFilterService;
+import com.my.blog.website.constant.ArticleCateEnum;
 import com.my.blog.website.constant.WebConst;
 import com.my.blog.website.dao.ContentVoMapper;
 import com.my.blog.website.dao.FilmMapper;
@@ -45,6 +47,9 @@ public class ContentServiceImpl implements IContentService {
 
     @Resource
     private FilmMapper filmMapper;
+
+    @Resource
+    private BloomFilterService bloomFilterService;
 
     @Override
     @Transactional
@@ -92,10 +97,20 @@ public class ContentServiceImpl implements IContentService {
 
         String tags = contents.getTags();
         String categories = contents.getCategories();
-        contentDao.insert(contents);
-        Integer cid = contents.getCid();
-        metasService.saveMetas(cid, tags, Types.TAG.getType());
-        metasService.saveMetas(cid, categories, Types.CATEGORY.getType());
+        try {
+            contentDao.insert(contents);
+            Integer cid = contents.getCid();
+            metasService.saveMetas(cid, tags, Types.TAG.getType());
+            metasService.saveMetas(cid, categories, Types.CATEGORY.getType());
+            /***url 添加到布隆*/
+            if (contents.getFilm() != null) {
+                bloomFilterService.addOne(contents.getFilm().getSrc());
+            } else {
+                bloomFilterService.addOne(contents.getThumbnail());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         return WebConst.SUCCESS_RESULT;
     }
 
@@ -197,12 +212,17 @@ public class ContentServiceImpl implements IContentService {
     public void batchAppend(List<ContentVo> contentVos) {
         contentVos.forEach(e -> {
                     this.publish(e);
-                    if (e.getFilm()!=null){
+                    if (e.getFilm() != null && e.getCid()!=null ) {
                         e.getFilm().setCid(e.getCid().longValue());
                         filmMapper.insert(e.getFilm());
                     }
                 }
         );
+    }
+
+    @Override
+    public List<String> selectUrlAll(ArticleCateEnum cate) {
+        return contentDao.selectUrlAll(cate.name());
     }
 
     @Override

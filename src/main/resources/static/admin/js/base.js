@@ -86,6 +86,20 @@ $.tale.prototype.alertConfirm = function (options) {
     this.alertBox(options);
 };
 
+
+/**
+ * 执行爬虫
+ * @param options
+ */
+$.tale.prototype.doPull = function (options) {
+    options = options || {};
+    options.title = options.title;
+    options.text = options.text;
+    options.showCancelButton = true;
+    options.type = 'question';
+    this.alertBox(options);
+};
+
 /**
  * 错误提示
  * @param options

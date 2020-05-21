@@ -1,40 +1,36 @@
 package com.my.blog.website.crawler;
 
+import com.my.blog.website.component.BloomFilterService;
 import com.my.blog.website.constant.ArticleCateEnum;
+import com.my.blog.website.crawler.base.MoviePlate;
+import com.my.blog.website.crawler.base.SeleniumMaster;
 import com.my.blog.website.crawler.ocr.OCR;
-import com.my.blog.website.dao.FilmMapper;
 import com.my.blog.website.dto.Types;
 import com.my.blog.website.modal.Vo.ContentVo;
 import com.my.blog.website.modal.Vo.Film;
-import com.my.blog.website.modal.Vo.FilmQueryHelper;
 import com.my.blog.website.modal.constants.FilmHelper;
 import com.my.blog.website.service.IContentService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.helper.HttpConnection;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.openqa.selenium.*;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.rmi.server.ExportException;
-import java.text.MessageFormat;
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,18 +42,17 @@ import java.util.regex.Pattern;
  * @author fan(renntrabbit @ foxmail.com) created by  2018/3/20 16:26
  */
 @Component
-public class RarbgMovieSource implements MoviePlate {
+public class RarbgMovieSource extends SeleniumMaster.AbsSeleniumMaster implements MoviePlate {
 
-    //static String httpsURLAsString = "https://rarbg.is/torrents.php?category=movies";
-    /**前100名*/
-    static String httpsURLAsString ="https://rarbg.is/top100.php?category[]=14&category[]=15&category[]=16&category[]=17&category[]=21&category[]=22&category[]=42&category[]=44&category[]=45&category[]=46&category[]=47&category[]=48";
-    static String httpsURLAsStringSecondStep = "https://rarbg.is/threat_defence.php?defence=2&sk={0}&cid={3}&i={4}&ref_cookie={1}&r={2}";
-    static String userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.26 Safari/537.36 Core/1.63.5005.400 QQBrowser/10.0.923.400";
+    /**
+     * 前100名
+     */
+    static String TOP_100 = "https://rarbg.is/top100.php?category[]=14&category[]=15&category[]=16&category[]=17&category[]=21&category[]=22&category[]=42&category[]=44&category[]=45&category[]=46&category[]=47&category[]=48";
     protected final Logger log = Logger.getLogger(this.getClass());
     @Resource
     private IContentService contentService;
     @Resource
-    private FilmMapper filmMapper;
+    BloomFilterService bloomFilterService;
 
     /**
      * 获取指定HTML标签的指定属性的值
@@ -80,333 +75,197 @@ public class RarbgMovieSource implements MoviePlate {
         return result;
     }
 
-    public static void main(String[] args) {
-        String source = "return overlib('<img src=\\'//dyncdn.me/mimages/40536/over_opt.jpg\\' border=0>'";
-        List<String> list = match(source, "img", "src");
-        System.out.println(list);
+    public static void main(String[] args) throws IOException, InterruptedException {
+        new RarbgMovieSource().start();
     }
 
-    //@Scheduled(cron = "0 0/2 * * * ?")
-    @Scheduled(cron = " 0 0 0/1 * * ?")
+    @Override
     public void start() throws IOException, InterruptedException {
+        WebDriver driver = null;
         log.info("start task....");
-        Connection connection = null;
-        /**
-         * 递归获取资源
-         */
-        connection = this.getResponse(connection);
-        Document doc = Jsoup.parse(connection.response().body());
-        Elements elements = doc.select("table .lista2t tr");
         List<ContentVo> contentVos = new ArrayList<ContentVo>();
-        log.info("get ["+elements.size()+"] movie resource..");
-        /**移除第一个无素，第一个是表头*/
-        if (elements.size()>0){
-            elements.remove(0);
-        }
-        for (Element e : elements) {
-            ContentVo vo = new ContentVo();
-
-            String title = e.select("td:eq(1)").select("a").attr("title");
-            String href = "https://rarbg.is" + e.select("td:eq(1)").select("a").attr("href");
-            //String addedTime = e.select("td:eq(2)").text();
-            //String size = e.select("td:eq(3)").text();
-            String thumbnail = e.select("td:eq(1)").select("a").attr("onmouseover");
-            if (thumbnail.startsWith("https")){
-                thumbnail = match(thumbnail, "img", "src").get(0);
-            }else{
-                thumbnail = "https:" + match(thumbnail, "img", "src").get(0);
-            }
-            this.getDescription(href, connection.request().cookies(), vo);
-
-            /**如果数据已抓取，就不处理了*/
-            FilmQueryHelper exp=new  FilmQueryHelper();
-            exp.createCriteria().andSrcEqualTo(vo.getFilm().getSrc());
-            if (filmMapper.countByExample(exp)>0){
-                break;
-            }
-
-            vo.setTitle(title);
-            vo.setAuthorId(1);
-            vo.setType(Types.ARTICLE.getType());
-            vo.setCategories(ArticleCateEnum.FILMS.name().toLowerCase());
-            vo.setAllowComment(false);
-            vo.setStatus("publish");
-            vo.setThumbnail(thumbnail);
-            contentVos.add(vo);
-        }
-        contentService.batchAppend(contentVos);
-
-    }
-
-    private Connection getResponse(Connection connection) throws IOException, InterruptedException {
-        Document doc = null;
-        if (connection == null) {
-            log.info("1.0 打开目录网站首页");
-            connection = Jsoup.connect(httpsURLAsString)
-                    .userAgent(userAgent)
-                    .header("Host", "rarbg.is")
-                    .header("Referer", "https://rarbg.is/torrents.php")
-                    .timeout(60000).validateTLSCertificates(false)
-                    .method(Connection.Method.GET);
-            connection.execute();
-            if (connection.response().statusCode() != HttpStatus.OK.value()) {
-                log.error(connection.response().statusMessage());
-            }
-            return this.getResponse(connection);
-        }
-        if (connection.response().url().toString().startsWith("https://rarbg.is/torrents.php?category=movies")) {
-            return connection;
-        } else if (connection.response().url().toString().startsWith("https://rarbg.is/threat_defence.php?defence=1")) {
-            log.info("2.0 open step 2 write cookies..");
-            doc = Jsoup.parse(connection.response().body());
-            Element script = doc.select("script").get(1); // Get the script part
-            /**
-             * 参数一
-             */
-            String value_sk = "r8l5i0vmpc";
-            Pattern p = Pattern.compile("(?is)value_sk = '(.+?)'"); // Regex for the value of the key
-            Matcher m = p.matcher(script.html()); // you have to use html here and NOT text! Text will drop the 'key' part
-            while (m.find()) {
-                log.info(m.group()); // the whole key ('key = value')
-                log.info(m.group(1)); // value only
-                value_sk = m.group(1);
-            }
-            /**
-             * 参数二
-             */
-            String value_c = "";
-            p = Pattern.compile("(?is)value_c = '(.+?)'"); // Regex for the value of the key
-            m = p.matcher(script.html()); // you have to use html here and NOT text! Text will drop the 'key' part
-            while (m.find()) {
-                log.info(m.group()); // the whole key ('key = value')
-                log.info(m.group(1)); // value only
-                value_c = m.group(1);
-            }
-            /**
-             * 参数三
-             */
-            String value_i = "";
-            p = Pattern.compile("(?is)value_i = '(.+?)'"); // Regex for the value of the key
-            m = p.matcher(script.html()); // you have to use html here and NOT text! Text will drop the 'key' part
-            while (m.find()) {
-                log.info(m.group()); // the whole key ('key = value')
-                log.info(m.group(1)); // value only
-                value_i = m.group(1);
-            }
-
-            int days = 7;
-            Date date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            Map<String, String> cookies = connection.response().cookies();
-            cookies.put("sk", value_sk);
-            cookies.put("expires", date.toGMTString());
-            cookies.put("path", "/");
-            cookies.put("aby", "2");
-            log.info("2.1 send ajax request..");
-            Connection.Response res = Jsoup.connect("https://rarbg.is/threat_defence_ajax.php?sk=" + value_sk + "&cid=" + value_c + "&i=" + value_i + "&r=" + RandomStringUtils.randomNumeric(8))
-                    .timeout(60000).validateTLSCertificates(false)
-                    .execute();
-            if (res.statusCode() != HttpStatus.OK.value()) {
-                log.error(connection.response().statusMessage());
-            }
-            Thread.sleep(1000L);
-            log.info("2.2 open captcha page..");
-            connection = Jsoup.connect(MessageFormat.format(httpsURLAsStringSecondStep, value_sk, "rarbg.is", RandomStringUtils.randomNumeric(8), value_c, value_i))
-                    .userAgent(userAgent)
-                    .header("Host", "rarbg.is")
-                    .timeout(60000).validateTLSCertificates(false)
-                    .method(Connection.Method.GET)
-                    .cookies(cookies)
-                    .followRedirects(false);
-            connection.execute();
-            if (connection.response().statusCode() != HttpStatus.OK.value()) {
-                log.error(connection.response().statusMessage());
-                throw new IOException("get captcha page fail");
-            }
-            return this.getResponse(connection);
-
-        } else if (connection.response().url().toString().startsWith("https://rarbg.is/threat_defence.php?defence=nojc")) {
-            connection = Jsoup.connect("https://rarbg.is" + "/threat_defence.php?defence=1")
-                    .userAgent(userAgent)
-                    .header("Host", "rarbg.is")
-                    .header("Referer", "https://rarbg.is/torrents.php")
-                    .cookies(connection.response().cookies())
-                    .timeout(60000).validateTLSCertificates(false)
-                    .method(Connection.Method.GET);
-            connection.execute();
-            log.info(connection.response().body());
-            return this.getResponse(connection);
-        } else if (connection.response().url().toString().startsWith("https://rarbg.is/threat_defence.php?defence=2")) {
-            log.info("2.3  use OCR see captcha..");
-            doc = Jsoup.parse(connection.response().body());
-            String fromActionUrl = "https://rarbg.is" + doc.select("form").attr("action");
-            String captcha_id = doc.select("form input[name=captcha_id]").attr("value");
-            String defence = doc.select("form input[name=defence]").attr("value");
-            String sk = doc.select("form input[name=sk]").attr("value");
-            String cid = doc.select("form input[name=cid]").attr("value");
-            String i = doc.select("form input[name=i]").attr("value");
-            String ref_cookie = doc.select("form input[name=ref_cookie]").attr("value");
-            String r = doc.select("form input[name=r]").attr("value");
-            String submitted_bot_captcha = doc.select("form input[name=submitted_bot_captcha]").attr("value");
-
-            if (StringUtils.isEmpty(captcha_id)) {
-                log.error("get param from form error");
-                throw new ExportException("get param from form error");
-            }
-            String solve_string = getCaptchaValue(captcha_id);
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("defence", defence);
-            map.put("sk", sk);
-            map.put("cid", cid);
-            map.put("i", i);
-            map.put("ref_cookie", ref_cookie);
-            map.put("r", r);
-            map.put("submitted_bot_captcha", submitted_bot_captcha);
-            map.put("captcha_id", captcha_id);
-            map.put("solve_string", solve_string);
-            connection = Jsoup.connect(fromActionUrl)
-                    .data(map)
-                    .method(Connection.Method.GET)
-                    .userAgent(userAgent)
-                    .header("Host", "rarbg.is")
-                    .header("Referer", "https://rarbg.is/torrents.php")
-                    .cookies(connection.response().cookies())
-                    .timeout(60000).validateTLSCertificates(false);
-            connection.execute();
-            if (connection.response().statusCode() != HttpStatus.OK.value()) {
-                log.error(connection.response().statusMessage());
-                throw new IOException("use captcha request netx page error");
-            }
-            return this.getResponse(connection);
-        } else if (connection.response().url().toString().startsWith("https://rarbg.is/torrents.php?r=")) {
-            log.info("3.0 get movie resource");
-            connection = Jsoup.connect(httpsURLAsString)
-                    .userAgent(userAgent)
-                    .header("Host", "rarbg.is")
-                    .header("Referer", "https://rarbg.is/torrents.php")
-                    .cookies(connection.response().cookies())
-                    .timeout(60000).validateTLSCertificates(false)
-                    .followRedirects(true)
-                    .method(Connection.Method.GET);
-            connection.execute();
-            if (connection.response().statusCode() != HttpStatus.OK.value()) {
-                log.error(connection.response().statusMessage());
-                throw new IOException("get movie resource error");
-            }
-            return this.getResponse(connection);
-        }
-        return connection;
-    }
-
-
-    public static void trustAllHttpsCertificates() throws Exception {
-        javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[1];
-        javax.net.ssl.TrustManager tm = new Pkix.miTM();
-        trustAllCerts[0] = tm;
-        javax.net.ssl.SSLContext sc = javax.net.ssl.SSLContext
-                .getInstance("SSL");
-        sc.init(null, trustAllCerts, null);
-        javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc
-                .getSocketFactory());
-    }
-
-    private String getCaptchaValue(String captcha_id_value) {
-        String captchaFileRemoteAsString = "https://rarbg.is/captcha2/" + captcha_id_value + ".png";
-        log.info("the captcha file path: " + captchaFileRemoteAsString);
         try {
-            trustAllHttpsCertificates();
-            HostnameVerifier hv = new HostnameVerifier() {
-                public boolean verify(String urlHostName, SSLSession session) {
-                    System.out.println("Warning: URL Host: " + urlHostName + " vs. "
-                            + session.getPeerHost());
-                    return true;
+            driver = super.createWebDriver();
+            driver.get(TOP_100);
+            Thread.sleep(3000);
+            log.info(driver.getCurrentUrl());
+            /***单击-跳转到验证码页*/
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/div/div/a")));
+            driver.findElement(By.xpath("/html/body/div/div/a")).click();
+            /***验证码*/
+            By by = By.xpath("/html/body/form/div/div/table[1]/tbody/tr[2]/td[2]/img");
+            wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+            wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(by));
+            String captchaValue = getCaptchaValue(driver, by);
+            /***填写验证码*/
+            wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"solve_string\"]")));
+            driver.findElement(By.xpath("//*[@id=\"solve_string\"]")).sendKeys(captchaValue);
+            /***I am human */
+            by = By.xpath("//*[@id=\"button_submit\"]");
+            wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+            wait.until(ExpectedConditions.elementToBeClickable(by));
+            driver.findElement(by).click();
+
+
+            /***top 100 popual */
+            driver.navigate().to(TOP_100);
+            /***table list*/
+            by = By.xpath("/html/body/table[3]/tbody/tr/td[2]/div/table/tbody/tr[2]/td/table/tbody/tr/td[2]/a[1]");
+            wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+            wait.until(ExpectedConditions.elementToBeClickable(by));
+            List<WebElement> webElements = driver.findElements(by);
+
+
+            webElements.forEach(e -> {
+                //布隆过滤器检查该网而有没有处理过
+                if (!bloomFilterService.mightContain(e.getAttribute("href"))) {
+                    String title = e.getText();
+                    String thumbnail = e.getAttribute("onmouseover");
+                    if (thumbnail.startsWith("https")) {
+                        thumbnail = match(thumbnail, "img", "src").get(0);
+                    } else {
+                        thumbnail = "https:" + match(thumbnail, "img", "src").get(0);
+                    }
+                    ContentVo vo = new ContentVo();
+                    vo.setTitle(title);
+                    vo.setThumbnail(thumbnail);
+                    vo.setContent(e.getAttribute("href"));
+                    vo.setAuthorId(1);
+                    vo.setType(Types.ARTICLE.getType());
+                    vo.setCategories(ArticleCateEnum.FILMS.name().toLowerCase());
+                    vo.setAllowComment(false);
+                    vo.setStatus("publish");
+                    contentVos.add(vo);
                 }
-            };
-            HttpsURLConnection.setDefaultHostnameVerifier(hv);
 
-            URL url = new URL(captchaFileRemoteAsString);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", userAgent);
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(15000);
-            connection.setReadTimeout(15000);
+            });
+            /***detail*/
+            WebDriver finalDriver = driver;
+            contentVos.forEach(e -> {
+                try {
+                    getDescription(finalDriver, e);
+                } catch (Exception x) {
+                    x.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (driver != null) {
+                driver.close();
+                driver.quit();
+                /***批量保存，并且数据要添加的bloom中*/
+            }
+            if (contentService == null) {
+                contentService.batchAppend(contentVos);
+            }
+        }
+    }
+
+    private ContentVo getDescription(WebDriver driver, ContentVo vo) {
+        log.info("5.0 get everyone resource detail page info");
+        Film film = new Film();
+        film.setSrc(vo.getContent());
+        film.setStatus(FilmHelper.EStatus.UN_TRANS.getStatus());
+
+        driver.navigate().to(vo.getContent());
+        By by = By.xpath("//*[@id=\"description\"]");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.elementToBeClickable(by));
+
+        String desc = driver.findElement(by).getText();
+        String description = desc != null ? desc : driver.findElement(by).getAttribute("innerHTML");
+        vo.setContent(description);
+        vo.setFilm(film);
+        List<WebElement> elements = driver.findElements(By.xpath("/html/body/table[3]/tbody/tr/td[2]/div/table/tbody/tr[2]/td/div/table/tbody/tr"));
+        elements.stream().forEach(e -> {
+            if (e.findElement(By.cssSelector("td.header2")).getText().startsWith("Torrent")) {
+                film.setDownPath(e.findElement(By.cssSelector("td.lista> a:nth-child(3)")).getAttribute("href"));
+            } else if (e.findElement(By.cssSelector("td.header2")).getText().startsWith("Poster")) {
+                film.setPoster(e.findElement(By.cssSelector("td.lista > img")).getAttribute("src"));
+            } else if (e.findElement(By.cssSelector("td.header2")).getText().startsWith("Others")) {
+                film.setOthers(e.findElement(By.cssSelector("td:nth-child(2) > table > tbody > tr:nth-child(2) > td:nth-child(5) > a")).getText());
+            } else if (e.findElement(By.cssSelector("td.header2")).getText().startsWith("Size")) {
+                film.setSize(e.findElement(By.cssSelector("td.lista")).getText());
+            } else if (e.findElement(By.cssSelector("td.header2")).getText().startsWith("Title")) {
+                film.setTitle(e.findElement(By.cssSelector("td.lista")).getText());
+            } else if (e.findElement(By.cssSelector("td.header2")).getText().startsWith("Year")) {
+                film.setYear(e.findElement(By.cssSelector("td.lista")).getText());
+            } else if (e.findElement(By.cssSelector("td.header2")).getText().startsWith("Plot")) {
+                film.setPlot(e.findElement(By.cssSelector("td.lista")).getText());
+            }
+        });
+        return vo;
+    }
 
 
-            connection.connect(); //访问图片
-            BufferedImage imageBuffer = ImageIO.read(connection.getInputStream());
-            File captchaFileAsLocal = new File("d:/captcha/" + captcha_id_value + ".png");
-            ImageIO.write(imageBuffer, "png", captchaFileAsLocal);
+    /**
+     * 获取难证码,对元素截图
+     *
+     * @param driver
+     * @param by
+     * @return
+     */
+    private String getCaptchaValue(WebDriver driver, By by) {
+        try {
+            File captchaFileAsLocal = captureElementScreenshot(driver, by);
+            log.info("the captcha file path: " + captchaFileAsLocal.getPath());
+
             String code = StringUtils.trim(new OCR().recognizeText(captchaFileAsLocal, "png"));
             log.info("this captcha code: " + code);
             return code;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "12345";
+        return "66666";
 
     }
 
-    private void getDescription(String descURLAsString, Map<String, String> cookies, ContentVo vo) throws IOException {
-        log.info("5.0 get everyone resource detail page info");
-       /* Connection.Response resp  = HttpConnection.connect(descURLAsString)
-                .userAgent(userAgent)
-                .header("Host", "rarbg.is")
-                .header("Referer", "https://rarbg.is/torrents.php")
-                .cookies(cookies)
-                .timeout(60000).validateTLSCertificates(false)
-                .method(Connection.Method.GET).response();*/
+    /**
+     * 元素截图
+     *
+     * @param driver,
+     * @param by
+     * @return
+     * @throws IOException
+     */
+    public File captureElementScreenshot(WebDriver driver, By by) throws IOException {
+        WebElement element = driver.findElement(by);
+        //Capture entire page screenshot as buffer.
+        //Used TakesScreenshot, OutputType Interface of selenium and File class of java to capture screenshot of entire page.
+        File screen = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        //Used selenium getSize() method to get height and width of element.
+        //Retrieve width of element.
+        int ImageWidth = element.getSize().getWidth();
+        //Retrieve height of element.
+        int ImageHeight = element.getSize().getHeight();
 
+        //Used selenium Point class to get x y coordinates of Image element.
+        //get location(x y coordinates) of the element.
+        Point point = element.getLocation();
+        int xcord = point.getX();
+        int ycord = point.getY();
 
-        Connection.Response resp = HttpConnection.connect(descURLAsString)
-                .userAgent(userAgent)
-                .header("Host", "rarbg.is")
-                .header("Referer", "https://rarbg.is/torrents.php")
-                .cookies(cookies)
-                .timeout(60000)
-                .validateTLSCertificates(false)
-                .method(Connection.Method.GET)
-                .execute();
-        if (resp.statusCode() != HttpStatus.OK.value()) {
-            log.error(resp.statusMessage());
-            throw new IOException("get everyone resource detail page info error");
-        }
-        Document doc = Jsoup.parse(resp.body());
-        Element e = doc.select("#description").first();
-        String description = e.text() == null ? "" : e.html();
-        vo.setContent(description);
-        Film film = new Film();
-        vo.setFilm(film);
+        //Reading full image screenshot.
+        BufferedImage img = ImageIO.read(screen);
+        //cut Image using height, width and x y coordinates parameters.
+        BufferedImage dest = img.getSubimage(xcord, ycord, ImageWidth, ImageHeight);
+        ImageIO.write(dest, "png", screen);
 
-        Elements elements=doc.select("div table .lista tr");
-        elements.stream().forEach(ele->{
-            if (ele.select("td:eq(0)").text().startsWith("Torrent")){
-                film.setDownPath(ele.select("td:eq(1) a:eq(2)").attr("href"));
-            }
-            if (ele.select("td:eq(0)").text().startsWith("Poster")){
-                film.setPoster(ele.select("td:eq(1) img").attr("src"));
-            }
-            if (ele.select("td:eq(0)").text().startsWith("Others")){
-                film.setOthers(ele.select("td:eq(1)").text());
-            }
-            if (ele.select("td:eq(0)").text().startsWith("Size")) {
-                film.setSize(ele.select("td:eq(1)").text());
-            }
-            if (ele.select("td:eq(0)").text().startsWith("Title")) {
-                film.setTitle(ele.select("td:eq(1)").text());
-            }
-            if (ele.select("td:eq(0)").text().startsWith("Year")) {
-                film.setYear(ele.select("td:eq(1)").text());
-            }
-            if (ele.select("td:eq(0)").text().startsWith("Plot")) {
-                film.setPlot(ele.select("td:eq(1)").text());
-            }
-            film.setSrc(descURLAsString);
-            film.setStatus(FilmHelper.EStatus.UN_TRANS.getStatus());
-        });
+        //Used FileUtils class of apache.commons.io.
+        //save Image screenshot In D: drive.
+        File captchaFileAsLocal = new File("d:/captcha/" + RandomStringUtils.randomAlphanumeric(10) + ".png");
+        FileUtils.copyFile(screen, captchaFileAsLocal);
 
-
+        return captchaFileAsLocal;
 
     }
 
+    @Override
+    public void interpret(String context, int maxPage) {
+
+    }
 }
 

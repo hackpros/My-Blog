@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
  * <p>Copyright: Copyright (c) 2018</p>
  * <p>Company: jumore</p>
  *
- * @author fan(renntrabbit@foxmail.com) created by  2018/3/22 16:00
+ * @author fan(renntrabbit @ foxmail.com) created by  2018/3/22 16:00
  */
 @Service
 public class JeneryService implements IJenery {

@@ -6,11 +6,11 @@ import org.apache.ibatis.annotations.Param;
 
 public interface BaseMapper<T, E> {
 
-	int countByExample(E e);
+	long countByExample(E e);
 
-	int deleteByExample(E e);
+	long deleteByExample(E e);
 
-	int deleteByPrimaryKey(T t);
+	long deleteByPrimaryKey(T t);
 
 	long insert(T t);
 

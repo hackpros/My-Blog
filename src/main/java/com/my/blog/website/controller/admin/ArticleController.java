@@ -4,6 +4,7 @@ package com.my.blog.website.controller.admin;
 import com.github.pagehelper.PageInfo;
 import com.my.blog.website.constant.WebConst;
 import com.my.blog.website.controller.BaseController;
+import com.my.blog.website.crawler.CrawkerService;
 import com.my.blog.website.dto.LogActions;
 import com.my.blog.website.dto.Types;
 import com.my.blog.website.exception.TipException;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -44,6 +46,8 @@ public class ArticleController extends BaseController {
 
     @Resource
     private ILogService logService;
+    @Resource
+    CrawkerService crawkerService;
 
     @GetMapping(value = "")
     public String index(@RequestParam(value = "page", defaultValue = "1") int page,
@@ -112,4 +116,13 @@ public class ArticleController extends BaseController {
         }
         return RestResponseBo.ok();
     }
+
+    @RequestMapping(value = "/pull")
+    @ResponseBody
+    public RestResponseBo pullPage(CrawkerService.TarSite tarSite, HttpServletRequest request) throws IOException, InterruptedException {
+        crawkerService.doExcute(tarSite);
+        logService.insertLog(LogActions.AUTO_COLLECT.getAction(), "系统自动收集", request.getRemoteAddr(), this.getUid(request));
+        return RestResponseBo.ok();
+    }
+
 }

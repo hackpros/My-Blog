@@ -30,25 +30,8 @@ public class CoreApplication {
 
     @Bean(initMethod = "init", destroyMethod = "close")
     public DataSource dataSource() {
-        String username = System.getenv("spring.datasource.username");
-        String password = System.getenv("spring.datasource.password");
-        String url = System.getenv("CLEARDB_DATABASE_URL");
-        DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setPassword(password);
-
-        if (StringUtils.isEmpty(username)) {
-            username = dataSourceProperties.getUsername();
-        }
-        if (StringUtils.isEmpty(password)) {
-            password = dataSourceProperties.getPassword();
-        }
-        if (StringUtils.isEmpty(url)) {
-            url = dataSourceProperties.getUrl();
-        }
         DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setUrl(url);
-        druidDataSource.setUsername(username);
-        druidDataSource.setPassword(password);
+        druidDataSource.setUrl(dataSourceProperties.getUrl());
         druidDataSource.setDriverClassName(dataSourceProperties.getDriverClassName());
         // configuration
         druidDataSource.setInitialSize(20);

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+	<local_port>1080</local_port>
+	<remotes>
+		<remote>
+			<ip_addr>74.207.246.242</ip_addr>
+			<port>8099</port>
+			<method>aes-256-cfb</method>
+			<password>eIW0Dnk69454e6nSwuspv9DmS201tQ0D</password>
+		</remote>
+		<remote>
+			<ip_addr>45.79.77.234</ip_addr>
+			<port>8099</port>
+			<method>aes-256-cfb</method>
+			<password>eIW0Dnk69454e6nSwuspv9DmS201tQ0D</password>
+		</remote>
+	</remotes>
+</config>

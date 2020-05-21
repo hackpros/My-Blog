@@ -1,7 +1,7 @@
 package com.my.blog.website.crawler;
 
 
-public class Pkix{
+public class Pkix {
 
     private static void trustAllHttpsCertificates() throws Exception {
         javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[1];
@@ -13,6 +13,7 @@ public class Pkix{
         javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc
                 .getSocketFactory());
     }
+
     static class miTM implements javax.net.ssl.TrustManager,
             javax.net.ssl.X509TrustManager {
         public java.security.cert.X509Certificate[] getAcceptedIssuers() {

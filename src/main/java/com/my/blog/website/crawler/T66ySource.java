@@ -1,8 +1,10 @@
 package com.my.blog.website.crawler;
 
+import com.my.blog.website.component.BloomFilterService;
 import com.my.blog.website.constant.ArticleCateEnum;
 import com.my.blog.website.constant.ArticleStatusEnum;
-import com.my.blog.website.dao.FilmMapper;
+import com.my.blog.website.crawler.base.MoviePlate;
+import com.my.blog.website.crawler.exception.CrawlerException;
 import com.my.blog.website.dto.Types;
 import com.my.blog.website.modal.Vo.ContentVo;
 import com.my.blog.website.service.IContentService;
@@ -63,6 +65,8 @@ public class T66ySource implements MoviePlate {
 
     @Resource
     private IContentService contentService;
+    @Resource
+    BloomFilterService bloomFilterService;
 
     public static void main(String[] args) throws Exception {
         T66ySource t = new T66ySource();
@@ -71,8 +75,9 @@ public class T66ySource implements MoviePlate {
 
 
     @Scheduled(cron = "0 5 23 * * ?", zone = "Asia/Shanghai")
-    //@Scheduled(cron = "0 */1 * * * ?", zone = "Asia/Shanghai")
-    public void start() throws IOException, InterruptedException {
+    @Override
+    public void start() throws IOException {
+
         log.info("start task....");
         List<ContentVo> contentVos = new ArrayList<ContentVo>();
         log.info("open 技术讨论区 一天内的主题列表");
@@ -84,12 +89,10 @@ public class T66ySource implements MoviePlate {
             /**
              * 先简单的过滤一下 h内容 ,后面想用es分词技术同时存到es中，便于搜索，学习es技术
              */
-            if (title.contains("AV") || title.contains("女优") || title.contains("男优") || title.contains("番号")) {
+            if (title.contains("一夜精品") || title.contains("AV") || title.contains("女优") || title.contains("男优") || title.contains("番号")) {
                 continue;
             }
             String srcUrl = "http://www.t66y.com/" + e.select("td:eq(0) a").attr("href");
-            //srcUrl="http://www.t66y.com/htm_data/7/1807/3207163.html";
-            //srcUrl="http://www.t66y.com/htm_data/7/1807/3207075.html";
             ContentVo vo = new ContentVo();
             vo.setTitle(title.split(" ")[0]);
             this.getContents(srcUrl, vo);
@@ -100,7 +103,10 @@ public class T66ySource implements MoviePlate {
             vo.setAllowComment(false);
             vo.setStatus(ArticleStatusEnum.draft.name());
             contentVos.add(vo);
-            contentService.publish(vo);
+            vo.setThumbnail(srcUrl);
+            if (vo != null && vo.getContent() != null && vo.getContent().getBytes().length <= 65535) {
+                contentService.publish(vo);
+            }
             log.info("add  [" + (i++) + "/" + elements.size() + "] theme  success..");
         }
     }
@@ -112,6 +118,10 @@ public class T66ySource implements MoviePlate {
      * @param vo
      */
     public void getContents(String srcUrl, ContentVo vo) throws IOException {
+        //布隆过滤器检查该网而有没有处理过
+        if (bloomFilterService.mightContain(srcUrl)) {
+            return;
+        }
         log.info("open detail ");
         log.debug(vo.getTitle());
         Document doc = this.getDoc(srcUrl);
@@ -141,9 +151,9 @@ public class T66ySource implements MoviePlate {
         CloseableHttpResponse response = null;
         try {
             /**使用socket5代理　shadowsocks-netty　自己维护代理池*/
-            //InetSocketAddress socksAddr = new InetSocketAddress("127.0.0.1", 4108);
+            InetSocketAddress socksAddr = new InetSocketAddress("127.0.0.1", 4080);
             HttpClientContext context = HttpClientContext.create();
-            //context.setAttribute("socks.address", socksAddr);
+            context.setAttribute("socks.address", socksAddr);
             HttpGet request = new HttpGet(url);
             request.setHeader("User-Agent", userAgent);
             response = httpclient.execute(request, context);
@@ -156,7 +166,8 @@ public class T66ySource implements MoviePlate {
             Document docAsList = Jsoup.parse(result);
             return docAsList;
         } catch (Exception e) {
-            return new Document("");
+            log.error(e.getMessage());
+            throw new CrawlerException("不能打开目录网站");
         } finally {
             httpclient.close();
             if (response != null) {

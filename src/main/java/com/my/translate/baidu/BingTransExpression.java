@@ -27,7 +27,7 @@ public class BingTransExpression extends Expression.AbsExpression {
 		/**设置语言*/ //todo
 
 		Select tzhCHS = new Select(driver.findElement(By.id("t_tl")));
-		tzhCHS.selectByValue("zh-CHS");
+		//tzhCHS.selectByValue("zh-CHS");
 
 		/**给js一点的执行时间*/
 		Thread.sleep(2000L);

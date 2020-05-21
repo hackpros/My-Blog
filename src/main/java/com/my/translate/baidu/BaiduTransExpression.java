@@ -1,6 +1,6 @@
 package com.my.translate.baidu;
 
-import com.my.blog.website.crawler.MoviePlate;
+import com.my.blog.website.crawler.base.MoviePlate;
 import com.my.translate.Expression;
 import com.my.translate.TranslateException;
 import lombok.Data;

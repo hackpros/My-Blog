@@ -1,12 +1,11 @@
 package com.my.translate.baidu;
 
-import com.my.blog.website.crawler.MoviePlate;
+import com.my.blog.website.crawler.base.MoviePlate;
 import com.my.translate.Expression;
 import com.my.translate.TranslateException;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.log4j.Logger;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.springframework.http.HttpStatus;

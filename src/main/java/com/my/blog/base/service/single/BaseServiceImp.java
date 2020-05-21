@@ -20,12 +20,12 @@ public class BaseServiceImp<T,E> implements IBaseService<T,E> {
 	}
 
 	@Override
-	public int deleteByExample(E e) {
+	public long deleteByExample(E e) {
 		return baseMapper.deleteByExample(e);
 	}
 
 	@Override
-	public int deleteByPrimaryKey(T t) {
+	public long deleteByPrimaryKey(T t) {
 		return baseMapper.deleteByPrimaryKey(t);
 	}
 

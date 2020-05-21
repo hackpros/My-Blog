@@ -51,7 +51,7 @@ public class HyfwQuery {
         Connection connection = openIndex();
 
         Document doc = Jsoup.parse(connection.response().body());
-        HttpURLConnection  httpURLConnection = procCaptcha(doc, connection.response());
+        HttpURLConnection httpURLConnection = procCaptcha(doc, connection.response());
 
         /***等待几秒针钟，让浏览器打开验证码*/
         Thread.sleep(3000L);
@@ -70,15 +70,15 @@ public class HyfwQuery {
 
         /**cookies*/
 
-        List<String> list=httpURLConnection.getHeaderFields().get("Set-Cookie");
-        String b=list.get(0).split(";")[0].split("=")[1];
-        String a=list.get(1).split(";")[0].split("=")[1];
+        List<String> list = httpURLConnection.getHeaderFields().get("Set-Cookie");
+        String b = list.get(0).split(";")[0].split("=")[1];
+        String a = list.get(1).split(";")[0].split("=")[1];
 
         connection = Jsoup.connect(orderAPIURLAsString)
                 .userAgent(userAgent)
                 .header("Host", "hyfw.95306.cn")
-                .cookie("bl0gm1HBTB",a)
-                .cookie("DZSW_SESSIONID",b)
+                .cookie("bl0gm1HBTB", a)
+                .cookie("DZSW_SESSIONID", b)
                 .timeout(60000)
                 .data(formData)
                 .method(Connection.Method.POST);
@@ -126,7 +126,7 @@ public class HyfwQuery {
             OpenExplorerTest4.browse(localCaptchaJpg.getPath());
             /**使用OCR识别验证码*/
             String code = StringUtils.trim(new OCR().recognizeText(localCaptchaJpg, "jpg"));
-            log.info("OCR Identification captcha is:"+ code);
+            log.info("OCR Identification captcha is:" + code);
             return connection;
         } catch (Exception e) {
             e.printStackTrace();
